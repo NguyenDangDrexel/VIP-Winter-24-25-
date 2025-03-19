@@ -1,10 +1,32 @@
-import numpy as np 
-import sys
+"""
+Author: Ben Dang - Nguyen Dang 
+Email: ppd34@drexel.edu 
 
-# In order to import the file in the parent directory, we add the directory containing the parent file to the sys.path 
-# setting path
-path = r"C:\New folder\Drexel\2023\Courses\Summer 2024 - SGN\VIP program - balloon project\Weather-Balloon-Drexel\NEBP_project"
-sys.path.append(path)
+
+This script script return the thermodynamics properties {
+        'Pressure': P, 
+        'Volume': V,
+        'Temperature': T, 
+        'Area': A,
+        'Radius': r,
+        'Number of moles': n
+    }  
+    of the balloon at different altitude, based on the 4 different model: 
+        1.  Isochoric Balloon - constant volume 
+        2. Isothermal balloon - constant temperature 
+        3. Adiabatic balloon 
+        4. T_balloon = T_atmosphere 
+      
+"""
+
+
+
+import numpy as np 
+
+# # In order to import the file in the parent directory, we add the directory containing the parent file to the sys.path 
+# # setting path
+# path = r"C:\New folder\Drexel\2023\Courses\Summer 2024 - SGN\VIP program - balloon project\Weather-Balloon-Drexel\NEBP_project"
+# sys.path.append(path)
  
 from Models.Atmospheric_models.AtmosphericModel import Pressure, Temperature, Density 
 

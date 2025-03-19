@@ -1,60 +1,60 @@
 """
-1. Run simulation for every 0.2 seconds 
-2. Get the altitude, time from simulation 
-3. Send altitude,time to Arduino + receive response 
-4. Python: if we do not receive control_signal from Arduino: keep the latest signal. To prevent overshooting, if control_signal the same for 2 or 3 control_interval => set it to 0 
-"""
-"""
-                                            READ ME
-    THIS SIMULATION IS RUNNING 
-    NOW, TRY TO SEND DATA TO ARDUINO 
-... 
+Author: Ben Dang - Nguyen Dang 
+Email: ppd34@drexel.edu 
 
 
+This is the dynamic simulator, which 
+    1. receives the control signal from Arduino board for every 20 seconds
+    2. Send the altitude of the balloon to Arduino for every 0.2 second
 
 
 """
-# SUCCESSFULLY TESTED ON NOV 6 WITH PIDController2  
+
+# ---------------------- instruction to use simulation ---------------- 
+"""
+    y = odeint(venting, y0, [0, delta_t], args=(u,wind_speed  )) # => real value of altitude 
+    inputs: 
+    delta_t: time step 
+    u: control signal 
+    wind_speed: CAUTION: DO NOT PUT WIND_SPEED FOR EVERY TIME STEP. USE time_i % 10 == 0 to insert wind_speed every 10 seconds 
+        
+"""
+
  
-altitude_sp_min = 20000
-altitude_sp = 28000
-altitude_sp_max = 30000
-avg_velocity = 7 
+
 
 import matplotlib.pyplot as plt
 import numpy as np
 import random 
 from tqdm.auto import tqdm 
 from scipy.integrate import odeint 
-
-
 import time 
 import serial 
-ser = serial.Serial ('COM10',baudrate= 115200 ,timeout =1 )
-time.sleep (5) 
-count =1
-time_delay = 0.2
-def SendSignalToArduino (altitude,time_t,count):
-    ser.write(f"{altitude:.2f};{time_t:.2f}\n".encode('ascii'))  # Add newline character and encode to bytes
-    time.sleep (time_delay)
-
-    # ----------------------------------- read response from Arduino 
-    # response = ser.readline ().decode ('ascii')  
-    # time.sleep (time_delay)
-
-    # if response:
-    #     print (f'{response} with nthvalue = {count}')
-    # elif response: 
-    #     print(f'do not receive signal from Arduino')
-    return count  
-# ---------------------------- READ ME --------------------------------------------
-"""
-
-"""
 #-------------------------------- import neccessary modules ------------------ 
 
 from Models.ThermodynamicModels import Balloon
 from Models.Atmospheric_models.AtmosphericModel import Pressure, Temperature, Density 
+
+ser = serial.Serial ('COM10',baudrate= 115200 ,timeout =1 )
+
+time.sleep (5) 
+count =1
+time_delay = 0.2
+
+altitude_sp_min = 20000
+altitude_sp = 28000
+altitude_sp_max = 30000
+avg_velocity = 7 
+def SendSignalToArduino (altitude,time_t,count):
+    """
+    This function send two values to Arduino via Serial Communication: altitude and time_t
+
+    """
+    ser.write(f"{altitude:.2f};{time_t:.2f}\n".encode('ascii'))  # Add newline character and encode to bytes
+    time.sleep (time_delay)
+    return count  
+
+
 
 #-------------------------------------------------------------------------------------------- 
 # IDEA FOR TESTING ARDUINO CODE: WRITE THE CODE THAT WE IMPLEMENT ON ARDUINO IN PYTHON => TEST it 
@@ -72,9 +72,6 @@ R = 8.31
 # Gravitational constant 
 g = 9.8 
 
-
-
-
 # -------------------------------- balloon parameters -----------------------------
 # Surface tension pressure; from 100 to 200 Pa 
 difference_pressure = 200 # (Pa)
@@ -88,14 +85,12 @@ initial_mol_helium = Pressure (0)* V0 / (R *Temperature (0))
 # -------------------------------- air_drag parameters -----------------------------
 C = 0.5 # m_air = C * rho * V  
 include_m_air  = True # True if we want to 
-
 # -------------------------------- venting parameters -----------------------------
 
 # Diameter of venting system (m): 
 diameter = 0.095 
 # Area of the venting 
 area_of_orifice = 1/4 * np.pi * diameter**2 * 1 
-
 # Discharged rate constant - needed 
 discharged_constant = 0.1  # 
 # -------------------------------- simulation parameters -----------------------------
@@ -106,11 +101,9 @@ discharged_constant = 0.1  #
 
 initial_params = [101325,626,293, 0] # [P0,n0,T0,delta_P]
 
-#Start at the ground level, turn on the controller when it hits some altitudel; V0 (neck lift, mass,...) 
 
-# case 4: T_in = T_out 
-# Case 3: think about the adiabatic process 
-# For now, do 2,4 
+
+
 def venting(y:list, t,u:float, wind_speed) -> list :
     """
     parameters 
@@ -218,15 +211,7 @@ def random_vertical_velocity (amplitude = 1):
     vertical_velocity = random.randint (-1,1) * amplitude
     return vertical_velocity
 
-# ---------------------- instruction to use simulation ---------------- 
-"""
-    y = odeint(venting, y0, [0, delta_t], args=(u,wind_speed  )) # => real value of altitude 
-    inputs: 
-    delta_t: time step 
-    u: control signal 
-    wind_speed: CAUTION: DO NOT PUT WIND_SPEED FOR EVERY TIME STEP. USE time_i % 10 == 0 to insert wind_speed every 10 seconds 
-        
-"""
+
 
 
 # ---------------------------------- RUN SIMULATION ---------------------------- 
@@ -307,17 +292,8 @@ for i in tqdm (ts):# 0.1 seconds i:0.2;0.4;0.6=> 5hz .
 # ----------------------------- read the value of u from Arduino 
     altitude_t = estimated_altitude 
     time_t  = i 
-    # count =SendSignalToArduino (altitude= altitude_t, time_t = time_t,count=count)
-    # for each time_t, send signal to Controller, by calling this function, but do not read as there is not value to read 
-    # velocity_sp2 =Controller_Arduino (altitude_i = altitude_t,time_i = i,PID= ' ')
-    # loop: good 
-    if int (i *5) % 100 ==0 and int (i*5) !=0 : 
-
-        # Send signal to arduino to activate PID 
-
-        # ser.write(f"{altitude_t:.2f};{time_t:.2f};active\n".encode('ascii'))  # Add newline character and encode to bytes
-        # time.sleep (time_delay)
-        # Read average velocity 
+    
+    if int (i *5) % 100 ==0 and int (i*5) !=0 :  
         receivedstring = ser.readline ().decode ('ascii')
         if (receivedstring!= ''):
             print (receivedstring)
@@ -333,21 +309,8 @@ for i in tqdm (ts):# 0.1 seconds i:0.2;0.4;0.6=> 5hz .
         SendSignalToArduino (altitude= altitude_t, time_t = time_t,count = 1)
     else: 
         SendSignalToArduino (altitude= altitude_t, time_t = time_t,count = 1 )
-        # if (u != ''):
-        #     u = float(u.strip())  # Strip removes the \r\n and float converts it to a number
-        # else: 
-        #     u =0
-        # # u =ser.readline ()
-        # time.sleep (time_delay)
-
-
-        # print (f'Control Signal: {u}')
-
-
-
-
-    # count +=1 
-# # ------------------------------- store the values for plotting ---------------------------------------------- 
+        
+# ------------------------------- store the values for plotting ---------------------------------------------- 
         # Store the value to the lists for plotting 
     v_measured.append (velocity )
     altitude_lx.append (altitude)
@@ -356,34 +319,6 @@ for i in tqdm (ts):# 0.1 seconds i:0.2;0.4;0.6=> 5hz .
     venting_status.append (u)
     
     count += 1 
-
-
-
-# ----------------------------------- Function to send data to Arduino 
-
-# This function send two floats to Arduino 
-
-
-
-# --------------------------- 
-# use for loop to send multiples value to Arduino 
-# for index,_ in enumerate (altitude):
-#     # extract two values from list 
-#     altitude_t  = altitude[index]
-#     time_t = time_space[index]
-#     count =SendSignalToArduino (altitude= altitude_t, time_t = time_t,count=count)
-
-#     if count %100 == 0: 
-#         # When c = 100: We received a response signal for it, 
-#         # Read average velocity 
-#         average_velocity = ser.readline ().decode ('ascii')
-#         time.sleep (time_delay)
-#         print (average_velocity)
-#         # average_velocity_lx.append (average_velocity)
-
-
-#     time.sleep (time_delay)
-#     count +=1 
 
 
 
@@ -402,9 +337,7 @@ else:
 # Plot the first set of data on the first subplot
 ax1.plot(ts[start_time:], v_list[start_time:], label='velocity')
 ax1.plot(ts[start_time:], v_measured[start_time:], label='velocity from Teensy')
-
 ax1.plot (ts[start_time:],sps2[start_time:],label = 'setpoint from simulation') 
-
 # ax1.plot (ts[start_time:],estimated_velocity[start_time:],label = 'estimated velocity')
 
 ax1.set_xlabel('Time')

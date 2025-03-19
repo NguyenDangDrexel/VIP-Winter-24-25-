@@ -1,3 +1,22 @@
+"""
+Author: Ben Dang - Nguyen Dang 
+Email: ppd34@drexel.edu 
+
+
+This is the simulation of the balloon. Only run on the laptop 
+
+"""
+# ---------------------- instruction to use simulation ---------------- 
+"""
+    y = odeint(venting, y0, [0, delta_t], args=(u,wind_speed  )) # => real value of altitude 
+    inputs: 
+    delta_t: time step 
+    u: control signal 
+    wind_speed: CAUTION: DO NOT PUT WIND_SPEED FOR EVERY TIME STEP. USE time_i % 10 == 0 to insert wind_speed every 10 seconds 
+        
+"""
+
+
 avg_velocity = 7 
 # Initial volume of Helium - 
 V0 = 6.6 # m3
@@ -7,28 +26,17 @@ m = 5.5
 discharged_constant = 0.2
 
 
-import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import math
-import os  
 import random 
 from tqdm.auto import tqdm 
 from scipy.integrate import odeint 
-from scipy.signal import medfilt 
 
 # ---------------------------- READ ME --------------------------------------------
-"""
 
-This is the simulation used to create the plot for conference poster 
-
-"""
 
 #-------------------------------- import neccessary modules ------------------ 
 
-# import sys
-# path = r"C:\Drexel\Drexel\2023\Courses\Summer 2024 - SGN\VIP program - balloon project\Weather-Balloon-Drexel\NEBP_project"
-# sys.path.append(path) 
 from Models.ThermodynamicModels import Balloon
 from Models.Atmospheric_models.AtmosphericModel import Pressure, Temperature, Density 
 from Controller.PIDPython import Controller_Arduino # this the python script 
@@ -180,15 +188,7 @@ def random_vertical_velocity (amplitude = 1):
     vertical_velocity = random.randint (-1,1) * amplitude
     return vertical_velocity
 
-# ---------------------- instruction to use simulation ---------------- 
-"""
-    y = odeint(venting, y0, [0, delta_t], args=(u,wind_speed  )) # => real value of altitude 
-    inputs: 
-    delta_t: time step 
-    u: control signal 
-    wind_speed: CAUTION: DO NOT PUT WIND_SPEED FOR EVERY TIME STEP. USE time_i % 10 == 0 to insert wind_speed every 10 seconds 
-        
-"""
+
 # ---------------------------------- RUN SIMULATION ---------------------------- 
 # ---------- PARAMS 
 ODEINT_initial_params = [0,0,initial_mol_helium]# [x,xdot,n]
@@ -241,10 +241,7 @@ for i in tqdm (ts):# 0.1 seconds i:0.2;0.4;0.6=> 5hz .
 
     # ----------------------------- read the value of u from Arduino 
     altitude_t = round(y0[0], 2)
-    # if i >= 3600: # assume that this the time when pressure chamber reach minimum pressure
-    #     altitude_t = 25000 # altitude = constant => stop vent 
-    # else: 
-    #         pass 
+    
     if int (i *5) % 100 ==0 and int (i*5) !=0: # Since i is 0.2;0.4;0.6 => o = 22.2 => (int i) = 20 => wrong 
         # Event -trigger PID 
         # simulate what happend when pressure chamber reach minimum pressure 
@@ -299,14 +296,6 @@ for i in tqdm (ts):# 0.1 seconds i:0.2;0.4;0.6=> 5hz .
 
 
 
-
-
-
-
-
-
-
-
 import matplotlib.patches as patches
 start_point1 = (0,0)
 start_point2 = (0,20000)
@@ -341,12 +330,8 @@ ax1.set_xlabel('Time (s)',fontsize = 20)
 ax1.set_ylabel('Velocity (m/s)',fontsize = 20 )
 ax1.legend(fontsize= 20,loc='upper right')
 ax1.grid(True)
-
-
 plt.setp(ax1.get_xticklabels(), fontsize=20)
 plt.setp(ax1.get_yticklabels(), fontsize=20)
-
-
 
 # Plot the second set of data on the second subplot
  
@@ -415,27 +400,6 @@ plt.setp(ax3.get_yticklabels(), fontsize=20)
 
 
 plt.show() 
-
-"""
-# Define the region
-x_start = 0       # Starting x-coordinate
-x_end = 10        # Ending x-coordinate
-y_start = 2       # Starting y-coordinate
-y_end = 6         # Ending y-coordinate
-
-# Calculate width and height
-width = x_end - x_start
-height = y_end - y_start
-
-# Create the figure and axes
-fig, ax = plt.subplots()
-
-# Add the horizontal rectangle
-rect = patches.Rectangle((x_start, y_start), width, height, 
-                          facecolor='lightblue', edgecolor=None, alpha=0.7)
-ax.add_patch(rect)
-
-"""
 
 # Region 1: , color green - can go freely  
 start_point1 = (0,0)

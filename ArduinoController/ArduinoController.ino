@@ -54,7 +54,7 @@ float estimated_altitude;  // Estimated altitude
 float altitude_sp_min = 10000 ; // Minimum altitude setpoint
 float altitude_sp = 19000;
 float altitude_sp_max = 30000;
-float time_constant =1142.86 ;  // Time constant
+float time_constant = (altitude_sp-altitude_sp_min)/avg_velocity ;  // Time constant
 float u =0;
 float Kp = 0.4;
 float Ki = 0;
@@ -71,9 +71,8 @@ float pressure ;
 
 /////////////////////////////////////////////////////////////////////////////////////// 
 
-///////////////////////////////////////////////////////////////////////////////
 
-/////////////////// PARAMS FOR LR ///////////////////////// 
+/////////////////// PARAMS FOR Linear Regression ///////////////////////// 
 float S_xy =0.0;
 float S_xx = 0.0;
 float S_x = 0.0;
@@ -83,7 +82,6 @@ float Sum_xy = 0.0;
 float velocity = 0.0;
 int datapoints =0;
 float x,y;
- //////////////////////////////////////////////////////////////
 
 //////////////////////// PARAMS FOR SERVO MOTOR ///////////// 
 bool isValveOpen = false;
@@ -256,12 +254,8 @@ void loop() {
      if (isValveOpen){
         servo_9.write(Degree_CLOSE); // close the servo motor 
         isValveOpen = false; // update the status of the servo motor 
-        // delay (300);
      }
      
-
-
-
     // with our current vent control strategy, this section of code does not need to be complicated to handle timing
     // if the PID indicates that the servo should open during the control interval, then the PID should open the servo
     // then it only needs to be closed once – whenever (currentTime > nextServoCloseTime)

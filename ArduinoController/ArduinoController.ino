@@ -65,7 +65,7 @@ float sum_int =0;
 float control_interval = 20;
 float d_error = 0;
 String statusString;
-float target_velocity =2;  // Target velocity
+float target_velocity =0;  // Target velocity
 float controlParameter;
 float pressure ;
 
